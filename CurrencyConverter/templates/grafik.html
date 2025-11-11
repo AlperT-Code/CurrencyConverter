@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="text-center mb-4">{{ base }} / {{ target }} Karşılaştırmalı Kuru Grafiği</h2>
+
+<div style="width: 90%; max-width: 1200px; margin: 0 auto;">
+    <canvas id="chart" height="400"></canvas>
+</div>
+
+<div class="text-center mt-4">
+    <a href="/" class="btn btn-custom">← Geri Dön</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+const ctx = document.getElementById('chart').getContext('2d');
+
+
+const dates = {{ dates|tojson }};
+const rates = {{ rates|tojson }};
+const inverseRates = rates.map(r => 1 / r);
+
+
+const gradientBlue = ctx.createLinearGradient(0, 0, 0, 400);
+gradientBlue.addColorStop(0, 'rgba(0,198,255,0.5)');
+gradientBlue.addColorStop(1, 'rgba(0,198,255,0)');
+
+const gradientRed = ctx.createLinearGradient(0, 0, 0, 400);
+gradientRed.addColorStop(0, 'rgba(255,75,43,0.5)');
+gradientRed.addColorStop(1, 'rgba(255,75,43,0)');
+
+
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: dates,
+        datasets: [
+            {
+                label: '{{ base }}/{{ target }} (örneğin USD/TRY)',
+                data: rates,
+                borderColor: '#00c6ff',
+                backgroundColor: gradientBlue,
+                fill: true,
+                tension: 0, 
+                pointRadius: 0,
+                borderWidth: 2
+            },
+            {
+                label: '{{ target }}/{{ base }} (örneğin TRY/USD)',
+                data: inverseRates,
+                borderColor: '#ff4b2b',
+                backgroundColor: gradientRed,
+                fill: true,
+                tension: 0, 
+                pointRadius: 0,
+                borderWidth: 2
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        layout: {
+            padding: 20
+        },
+        interaction: {
+            mode: 'index',
+            intersect: false
+        },
+        plugins: {
+            legend: {
+                labels: {
+                    color: '#fff',
+                    font: { size: 14 }
+                }
+            },
+            tooltip: {
+                callbacks: {
+                    label: function(context) {
+                        return context.dataset.label + ': ' + context.parsed.y.toFixed(4);
+                    }
+                }
+            }
+        },
+        scales: {
+            x: {
+                ticks: { color: '#fff', maxRotation: 45, minRotation: 0 },
+                grid: { color: 'rgba(255,255,255,0.1)' },
+                beginAtZero: false
+            },
+            y: {
+                ticks: { color: '#fff' },
+                grid: { color: 'rgba(255,255,255,0.1)' },
+                beginAtZero: false 
+            }
+        }
+    }
+});
+</script>
+
+{% endblock %}
